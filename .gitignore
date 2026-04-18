@@ -15,3 +15,8 @@ Configs/Local.xcconfig
 
 # macOS
 .DS_Store
+
+# config
+Configs/Release.xcconfig
+Configs/Debug.xcconfig
+Configs/*.xcconfig
