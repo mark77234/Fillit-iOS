@@ -53,6 +53,7 @@ struct RankResultView: View {
         }
         .navigationTitle("투표 결과")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .task { await viewModel.loadRoom() }
         .loadingOverlay(viewModel.isLoading)
         .alert("오류", isPresented: $viewModel.showError) {

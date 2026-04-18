@@ -86,6 +86,7 @@ struct ResultView: View {
         }
         .navigationTitle("결과 보기")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .task { await viewModel.loadRoom() }
         .loadingOverlay(viewModel.isLoading || viewModel.isDownloading)
         .sheet(isPresented: $viewModel.showShareSheet) {

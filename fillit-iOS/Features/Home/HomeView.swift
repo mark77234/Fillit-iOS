@@ -2,27 +2,30 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
+    @State private var showOnboarding = false
     @Environment(AppRouter.self) private var router
 
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                // Header
-                VStack(spacing: 10) {
+                // Header with app icon
+                VStack(spacing: 12) {
                     Image("ic_fillit")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 88, height: 88)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .shadow(color: Color.fillitPrimary.opacity(0.2), radius: 12, x: 0, y: 4)
+
                     Text("Fillit")
-                        .font(.system(size: 44, weight: .bold))
+                        .font(.system(size: 40, weight: .bold))
                         .foregroundStyle(Color.fillitPrimary)
+
                     Text("소중한 순간들을 함께 채워보세요")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.top, 60)
+                .padding(.top, 24)
 
                 // Join room
                 VStack(spacing: 14) {
@@ -44,8 +47,14 @@ struct HomeView: View {
                     } label: {
                         Text("참여하기")
                             .font(.body.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.fillitPrimary)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .contentShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .primaryButton()
+                    .buttonStyle(.plain)
                     .disabled(viewModel.roomCode.count != 6)
                     .opacity(viewModel.roomCode.count != 6 ? 0.5 : 1)
                 }
@@ -72,15 +81,44 @@ struct HomeView: View {
                     .background(Color.fillitPrimary.opacity(0.12))
                     .foregroundStyle(Color.fillitPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .contentShape(RoundedRectangle(cornerRadius: 12))
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal)
 
                 // Use cases
                 UseCaseSectionView()
+
+                // External link to web version
+                Link(destination: URL(string: "https://fillit.today")!) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "safari.fill")
+                        Text("웹에서도 사용해보기")
+                            .font(.subheadline.weight(.medium))
+                    }
+                    .foregroundStyle(Color.fillitPrimary.opacity(0.8))
+                    .padding(.vertical, 8)
+                }
             }
             .padding(.bottom, 40)
         }
-        .navigationBarHidden(true)
+        .navigationTitle("")
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showOnboarding = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.title3)
+                        .foregroundStyle(Color.fillitPrimary)
+                }
+                .accessibilityLabel("앱 사용법 보기")
+            }
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView { showOnboarding = false }
+        }
         .alert("오류", isPresented: $viewModel.showError) {
             Button("확인", role: .cancel) {}
         } message: {

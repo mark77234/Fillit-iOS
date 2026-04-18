@@ -82,6 +82,7 @@ struct VoteView: View {
         }
         .navigationTitle("투표하기")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .task {
             await viewModel.loadRoom()
             viewModel.startSession(router: router)

@@ -38,6 +38,7 @@ struct RoomView: View {
         }
         .navigationTitle(viewModel.room?.keyword ?? "Fillit")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .task {
             await viewModel.loadRoom()
             viewModel.startSession()
