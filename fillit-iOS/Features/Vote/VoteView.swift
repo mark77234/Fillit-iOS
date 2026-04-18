@@ -61,17 +61,21 @@ struct VoteView: View {
 
                 // Host: end vote button
                 if viewModel.isHost {
-                    Button {
-                        viewModel.endVote(router: router)
-                    } label: {
-                        if viewModel.isEndingVote {
-                            ProgressView().tint(.white)
-                        } else {
-                            Text("투표 종료").font(.body.weight(.semibold))
-                        }
-                    }
-                    .primaryButton()
-                    .padding(.horizontal)
+                    Button(action: { viewModel.endVote(router: router) }) {
+    ZStack {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.fillitPrimary)
+            .frame(height: 50)
+        if viewModel.isEndingVote {
+            ProgressView().tint(.white)
+        } else {
+            Text("투표 종료").font(.body.weight(.semibold)).foregroundColor(.white)
+        }
+    }
+}
+.buttonStyle(.plain)
+.disabled(viewModel.isEndingVote)
+.padding(.horizontal)
                 }
             }
             .padding(.vertical, 16)

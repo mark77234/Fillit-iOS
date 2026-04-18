@@ -67,6 +67,22 @@ struct ResultView: View {
                 .padding(.bottom, 32)
             }
             .padding(.top, 16)
+            // 홈으로 돌아가기 버튼
+            Button(action: {
+                router.popToRoot()
+            }) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.fillitPrimary)
+                        .frame(height: 50)
+                    Label("홈으로 돌아가기", systemImage: "house.fill")
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(.white)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal)
+            .padding(.bottom, 32)
         }
         .navigationTitle("결과 보기")
         .navigationBarTitleDisplayMode(.inline)

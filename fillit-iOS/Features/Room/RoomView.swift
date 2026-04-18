@@ -13,13 +13,27 @@ struct RoomView: View {
     }
 
     var body: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView("방 불러오는 중...")
-            } else if let room = viewModel.room {
-                roomContent(room: room)
-            } else {
-                Text("방을 찾을 수 없습니다.").foregroundStyle(.secondary)
+        ZStack {
+            // Layer 0: Background — guarantees no content bleeds through
+            Color(uiColor: .systemBackground).ignoresSafeArea()
+
+            // Layer 1: Main content
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("방 불러오는 중...")
+                } else if let room = viewModel.room {
+                    roomContent(room: room)
+                } else {
+                    Text("방을 찾을 수 없습니다.").foregroundStyle(.secondary)
+                }
+            }
+
+            // Layer 2: Upload overlay — naturally above content via ZStack ordering
+            if viewModel.isUploading {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.4)
+                    .tint(.white)
             }
         }
         .navigationTitle(viewModel.room?.keyword ?? "Fillit")
@@ -30,7 +44,9 @@ struct RoomView: View {
         }
         .onDisappear { viewModel.stopSession() }
         .onChange(of: viewModel.room?.completed) { _, completed in
-            if completed == true {
+            // Guard prevents re-navigation when returning from VoteView with a completed room
+            if completed == true && !viewModel.navigatedToVote {
+                viewModel.navigatedToVote = true
                 router.navigate(to: .vote(code: roomCode))
             }
         }
@@ -60,7 +76,6 @@ struct RoomView: View {
                 photosPickerItem = nil
             }
         }
-        .loadingOverlay(viewModel.isUploading)
         .alert("오류", isPresented: $viewModel.showError) {
             Button("확인", role: .cancel) {}
         } message: {
@@ -79,6 +94,7 @@ struct RoomView: View {
             VStack(spacing: 20) {
                 ProgressSection(room: room)
 
+                // Template grid — aspect ratio anchored, never overflows scroll bounds
                 TemplatePreviewView(room: room) { slot in
                     viewModel.tapSlot(slot)
                 }
@@ -98,6 +114,8 @@ struct RoomView: View {
         }
     }
 }
+
+// MARK: - Upload Action Sheet
 
 private struct UploadActionSheetView: View {
     let slotIndex: Int
@@ -166,6 +184,8 @@ private struct UploadActionSheetView: View {
     }
 }
 
+// MARK: - Subviews
+
 private struct ProgressSection: View {
     let room: Room
     var progress: (filled: Int, total: Int) { room.progress }
@@ -199,7 +219,9 @@ private struct ParticipantListView: View {
                 let filled = slots.filter { $0.filled }.count
                 HStack {
                     Circle()
-                        .fill(participant.userId == room.hostUserId ? Color.fillitPrimary : Color.gray.opacity(0.3))
+                        .fill(participant.userId == room.hostUserId
+                              ? Color.fillitPrimary
+                              : Color.gray.opacity(0.3))
                         .frame(width: 8, height: 8)
                     Text(participant.nickname)
                         .font(.subheadline)
@@ -221,6 +243,10 @@ private struct ParticipantListView: View {
 private struct InviteSection: View {
     let roomCode: String
     @State private var copied = false
+
+    private var shareText: String {
+        "Fillit에서 함께해요!\n코드 '\(roomCode)'를 입력하거나 앱을 설치하세요.\nfillit://open"
+    }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -249,8 +275,8 @@ private struct InviteSection: View {
             .background(Color.fillitPrimary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            ShareLink(item: "Fillit 방에 참여하세요! 코드: \(roomCode)") {
-                Label("링크 공유", systemImage: "square.and.arrow.up")
+            ShareLink(item: shareText) {
+                Label("앱 공유하기", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
                     .frame(height: 40)
                     .background(Color(uiColor: .secondarySystemBackground))

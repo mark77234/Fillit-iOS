@@ -19,6 +19,7 @@ final class RoomViewModel {
     var isExpired = false
     var showDeadlineWarning = false
     var uploadProgress: Double = 0
+    var navigatedToVote = false
 
     private let roomCode: String
     private let getStatusUseCase = GetRoomStatusUseCase()

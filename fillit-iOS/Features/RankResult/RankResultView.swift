@@ -35,14 +35,18 @@ struct RankResultView: View {
                 }
 
                 // Navigate to result
-                Button {
-                    router.navigate(to: .result(code: roomCode))
-                } label: {
-                    Label("다운로드 / 공유로 이동", systemImage: "arrow.down.circle.fill")
-                        .font(.body.weight(.semibold))
-                }
-                .primaryButton()
-                .padding(.horizontal)
+                Button(action: { router.navigate(to: .result(code: roomCode)) }) {
+    ZStack {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.fillitPrimary)
+            .frame(height: 50)
+        Label("다운로드 / 공유로 이동", systemImage: "arrow.down.circle.fill")
+            .font(.body.weight(.semibold))
+            .foregroundColor(.white)
+    }
+}
+.buttonStyle(.plain)
+.padding(.horizontal)
                 .padding(.bottom, 32)
             }
             .padding(.top, 16)

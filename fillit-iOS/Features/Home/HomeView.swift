@@ -9,6 +9,12 @@ struct HomeView: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 10) {
+                    Image("ic_fillit")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 88, height: 88)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(color: Color.fillitPrimary.opacity(0.2), radius: 12, x: 0, y: 4)
                     Text("Fillit")
                         .font(.system(size: 44, weight: .bold))
                         .foregroundStyle(Color.fillitPrimary)

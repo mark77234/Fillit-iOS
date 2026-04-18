@@ -30,21 +30,24 @@ struct CreateRoomView: View {
                 // Deadline
                 DeadlineSection(viewModel: viewModel)
 
-                // Create button
-                Button {
-                    Task { await viewModel.createRoom(router: router) }
-                } label: {
-                    if viewModel.isLoading {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text("방 만들기").font(.body.weight(.semibold))
-                    }
-                }
-                .primaryButton()
-                .disabled(!viewModel.canCreate || viewModel.isLoading)
-                .opacity(!viewModel.canCreate ? 0.5 : 1)
-                .padding(.horizontal)
-                .padding(.bottom, 32)
+                // Create button — label fills full frame so entire area is tappable
+                Button(action: { Task { await viewModel.createRoom(router: router) } }) {
+    ZStack {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.fillitPrimary)
+            .frame(height: 50)
+        if viewModel.isLoading {
+            ProgressView().tint(.white)
+        } else {
+            Text("방 만들기").font(.body.weight(.semibold)).foregroundColor(.white)
+        }
+    }
+}
+.buttonStyle(.plain)
+.disabled(!viewModel.canCreate || viewModel.isLoading)
+.opacity(!viewModel.canCreate ? 0.5 : 1)
+.padding(.horizontal)
+.padding(.bottom, 32)
             }
             .padding(.top, 16)
         }
@@ -241,8 +244,8 @@ private struct KeywordSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "투표 키워드 (선택)", icon: "tag")
-            TextField("예: #여행 #생일 #모임", text: $viewModel.keyword)
+            SectionHeader(title: "키워드", icon: "tag")
+            TextField("예: 여행, 생일, 모임", text: $viewModel.keyword)
                 .textFieldStyle(FillitTextFieldStyle())
                 .onChange(of: viewModel.keyword) { _, v in
                     viewModel.keyword = String(v.prefix(60))

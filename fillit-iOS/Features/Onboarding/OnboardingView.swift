@@ -6,7 +6,8 @@ struct OnboardingView: View {
 
     private let slides: [OnboardingSlide] = [
         OnboardingSlide(
-            icon: "photo.on.rectangle.angled",
+            icon: "",
+            heroImageName: "ic_fillit",
             title: "Fillit",
             description: "소중한 순간들을\n함께 채워보세요",
             showSkip: true
@@ -123,6 +124,7 @@ struct OnboardingView: View {
 
 private struct OnboardingSlide {
     let icon: String
+    var heroImageName: String? = nil
     let title: String
     let description: String
     let showSkip: Bool
@@ -135,13 +137,22 @@ private struct OnboardingSlideView: View {
         VStack(spacing: 40) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(Color.fillitPrimary.opacity(0.12))
-                    .frame(width: 180, height: 180)
-                Image(systemName: slide.icon)
-                    .font(.system(size: 72))
-                    .foregroundStyle(Color.fillitPrimary)
+            if let imageName = slide.heroImageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 36))
+                    .shadow(color: Color.fillitPrimary.opacity(0.25), radius: 24, x: 0, y: 8)
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(Color.fillitPrimary.opacity(0.12))
+                        .frame(width: 180, height: 180)
+                    Image(systemName: slide.icon)
+                        .font(.system(size: 72))
+                        .foregroundStyle(Color.fillitPrimary)
+                }
             }
 
             VStack(spacing: 16) {

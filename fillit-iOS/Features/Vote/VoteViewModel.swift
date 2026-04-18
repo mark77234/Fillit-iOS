@@ -19,6 +19,8 @@ final class VoteViewModel {
     let socketService = SocketService()
 
     private var pollingTask: Task<Void, Never>?
+    // Prevents double-push: endVote() API success + onVotingCompleted socket fire simultaneously
+    private var navigatedToResult = false
 
     init(roomCode: String) {
         self.roomCode = roomCode
@@ -87,20 +89,22 @@ final class VoteViewModel {
     }
 
     private func setupSocket(router: AppRouter) {
+        // Callbacks arrive on the main thread (SocketService guarantees this via
+        // DispatchQueue.main.async wrappers), so all property access is thread-safe.
         socketService.onVoteUpdated = { [weak self] event in
             guard var r = self?.room else { return }
             r.voteCompletedCount = event.completedCount
             self?.room = r
         }
         socketService.onVotingCompleted = { [weak self] event in
-            guard var r = self?.room else { return }
-            r.votingCompleted = true
-            r.voteRanking = event.voteRanking
-            r.uploadRanking = event.uploadRanking
-            self?.room = r
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                router.navigate(to: .rankResult(code: self?.roomCode ?? ""))
-            }
+            guard let self, !self.navigatedToResult else { return }
+            var r = self.room
+            r?.votingCompleted = true
+            r?.voteRanking = event.voteRanking
+            r?.uploadRanking = event.uploadRanking
+            self.room = r
+            self.navigatedToResult = true
+            router.navigate(to: .rankResult(code: self.roomCode))
         }
         socketService.connect(roomCode: roomCode)
     }
@@ -136,10 +140,13 @@ final class VoteViewModel {
     }
 
     func endVote(router: AppRouter) {
+        guard !navigatedToResult else { return }
         isEndingVote = true
         Task {
             do {
                 _ = try await voteUseCase.endVote(code: roomCode)
+                // Set flag before navigating so a concurrent onVotingCompleted handler skips
+                navigatedToResult = true
                 await MainActor.run { router.navigate(to: .rankResult(code: roomCode)) }
             } catch {
                 await MainActor.run { setError(error.localizedDescription) }

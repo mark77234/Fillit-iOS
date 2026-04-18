@@ -24,7 +24,8 @@ final class SocketService {
 
     func connect(roomCode: String) {
         disconnect()
-        let socketURL = Bundle.main.object(forInfoDictionaryKey: "SOCKET_BASE_URL") as? String ?? "https://fillit-production.up.railway.app"
+        let socketURL = Bundle.main.object(forInfoDictionaryKey: "SOCKET_BASE_URL") as? String
+            ?? "https://fillit-production.up.railway.app"
         guard let url = URL(string: socketURL) else { return }
 
         manager = SocketManager(socketURL: url, config: [
@@ -59,24 +60,28 @@ final class SocketService {
             DispatchQueue.main.async { self?.isConnected = false }
         }
 
+        // Each handler is dispatched to the main thread BEFORE reading @Observable
+        // properties (onSlotUpdated, etc.), preventing swift_retain data-race crashes
+        // that occur when socket.io's background thread reads properties concurrently
+        // with main-thread writes.
         socket?.on("slot_updated") { [weak self] data, _ in
-            self?.decode(data: data, handler: self?.onSlotUpdated)
+            DispatchQueue.main.async { self?.decode(data: data, handler: self?.onSlotUpdated) }
         }
 
         socket?.on("room_completed") { [weak self] data, _ in
-            self?.decode(data: data, handler: self?.onRoomCompleted)
+            DispatchQueue.main.async { self?.decode(data: data, handler: self?.onRoomCompleted) }
         }
 
         socket?.on("voting_started") { [weak self] data, _ in
-            self?.decode(data: data, handler: self?.onVotingStarted)
+            DispatchQueue.main.async { self?.decode(data: data, handler: self?.onVotingStarted) }
         }
 
         socket?.on("vote_updated") { [weak self] data, _ in
-            self?.decode(data: data, handler: self?.onVoteUpdated)
+            DispatchQueue.main.async { self?.decode(data: data, handler: self?.onVoteUpdated) }
         }
 
         socket?.on("voting_completed") { [weak self] data, _ in
-            self?.decode(data: data, handler: self?.onVotingCompleted)
+            DispatchQueue.main.async { self?.decode(data: data, handler: self?.onVotingCompleted) }
         }
 
         socket?.on("room_expired") { [weak self] _, _ in
@@ -92,6 +97,7 @@ final class SocketService {
         guard let dict = data.first as? [String: Any],
               let jsonData = try? JSONSerialization.data(withJSONObject: dict),
               let event = try? decoder.decode(T.self, from: jsonData) else { return }
-        DispatchQueue.main.async { handler?(event) }
+        // Already on main thread; call handler directly.
+        handler?(event)
     }
 }

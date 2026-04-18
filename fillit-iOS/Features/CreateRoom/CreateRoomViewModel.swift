@@ -32,7 +32,9 @@ final class CreateRoomViewModel {
     }
 
     var canCreate: Bool {
-        !selectedTemplateId.isEmpty && !nickname.trimmingCharacters(in: .whitespaces).isEmpty
+        !selectedTemplateId.isEmpty
+            && !nickname.trimmingCharacters(in: .whitespaces).isEmpty
+            && !keyword.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     var maxParticipants: Int {
@@ -54,7 +56,7 @@ final class CreateRoomViewModel {
     }
 
     var keywordPresets: [String] {
-        ["#여행", "#생일", "#모임", "#졸업", "#맛집", "#페스티벌", "#스포츠", "#데이트"]
+        ["여행", "생일", "모임", "졸업", "맛집", "페스티벌", "스포츠", "데이트"]
     }
 
     func loadTemplates() async {
