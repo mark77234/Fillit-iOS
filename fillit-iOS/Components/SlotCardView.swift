@@ -10,24 +10,22 @@ struct SlotCardView: View {
     var body: some View {
         Button(action: onTap) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(cardBackground)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(borderColor, lineWidth: borderWidth)
-                    )
+                cardBackground
 
                 switch slot.status {
                 case .empty:
                     EmptySlotContent()
-
                 case .assigned:
                     AssignedSlotContent(slot: slot, isMySlot: isMySlot)
-
                 case .filled:
                     FilledSlotContent(slot: slot, baseURL: baseURL)
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(borderColor, lineWidth: borderWidth)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -111,6 +109,7 @@ private struct FilledSlotContent: View {
                 }
                 .resizable()
                 .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
 
             LinearGradient(
@@ -118,6 +117,7 @@ private struct FilledSlotContent: View {
                 startPoint: .center,
                 endPoint: .bottom
             )
+            .allowsHitTesting(false)
 
             VStack(alignment: .leading, spacing: 2) {
                 if let nickname = slot.nickname {
@@ -135,7 +135,7 @@ private struct FilledSlotContent: View {
             }
             .padding(4)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .allowsHitTesting(false)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

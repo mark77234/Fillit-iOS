@@ -24,7 +24,6 @@ struct RoomView: View {
         }
         .navigationTitle(viewModel.room?.keyword ?? "Fillit")
         .navigationBarTitleDisplayMode(.inline)
-        
         .task {
             await viewModel.loadRoom()
             viewModel.startSession()
@@ -42,6 +41,14 @@ struct RoomView: View {
             CameraPickerView { image in
                 viewModel.uploadImage(image)
             }
+        }
+        .sheet(isPresented: $viewModel.showUploadSheet) {
+            UploadActionSheetView(
+                slotIndex: viewModel.selectedSlotIndex ?? 0,
+                photosPickerItem: $photosPickerItem,
+                includeLocation: $viewModel.includeLocation,
+                onCamera: { viewModel.showCamera = true }
+            )
         }
         .onChange(of: photosPickerItem) { _, item in
             guard let item else { return }
@@ -64,42 +71,24 @@ struct RoomView: View {
         } message: {
             Text("업로드 마감 1시간 전입니다. 빠르게 사진을 업로드하세요!")
         }
-        .confirmationDialog("사진 업로드", isPresented: $viewModel.showUploadSheet) {
-            PhotosPicker(selection: $photosPickerItem, matching: .images) {
-                Label("갤러리에서 선택", systemImage: "photo")
-            }
-            Button("카메라로 촬영") {
-                viewModel.showCamera = true
-            }
-            Toggle(isOn: $viewModel.includeLocation) {
-                Label("위치 정보 포함", systemImage: "location")
-            }
-            Button("취소", role: .cancel) {}
-        } message: {
-            Text("슬롯 \((viewModel.selectedSlotIndex ?? 0) + 1)에 사진을 업로드합니다")
-        }
     }
 
     @ViewBuilder
     private func roomContent(room: Room) -> some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Progress bar
                 ProgressSection(room: room)
 
-                // Template grid
                 TemplatePreviewView(room: room) { slot in
                     viewModel.tapSlot(slot)
                 }
                 .padding(.horizontal)
 
-                // Participants
                 if room.mode == .multi {
                     ParticipantListView(room: room)
                         .padding(.horizontal)
                 }
 
-                // Invite section
                 if viewModel.isHost {
                     InviteSection(roomCode: roomCode)
                         .padding(.horizontal)
@@ -107,6 +96,73 @@ struct RoomView: View {
             }
             .padding(.vertical, 16)
         }
+    }
+}
+
+private struct UploadActionSheetView: View {
+    let slotIndex: Int
+    @Binding var photosPickerItem: PhotosPickerItem?
+    @Binding var includeLocation: Bool
+    let onCamera: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 10)
+                .padding(.bottom, 16)
+
+            Text("슬롯 \(slotIndex + 1)에 사진을 업로드합니다")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 16)
+
+            Toggle(isOn: $includeLocation) {
+                Label("위치 정보 포함", systemImage: "location")
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 12)
+
+            PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                Label("갤러리에서 선택", systemImage: "photo")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+            .onChange(of: photosPickerItem) { _, item in
+                if item != nil { dismiss() }
+            }
+
+            Button {
+                dismiss()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    onCamera()
+                }
+            } label: {
+                Label("카메라로 촬영", systemImage: "camera")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+
+            Button("취소", role: .cancel) { dismiss() }
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding(.horizontal)
+                .padding(.bottom, 16)
+        }
+        .presentationDetents([.height(300)])
+        .presentationDragIndicator(.hidden)
     }
 }
 
