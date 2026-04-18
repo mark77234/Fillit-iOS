@@ -124,7 +124,6 @@ private struct UseCaseSectionView: View {
                         }
                         .frame(width: 90)
                         .padding(12)
-                        .fillitCard()
                     }
                 }
                 .padding(.horizontal)
