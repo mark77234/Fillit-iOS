@@ -1,6 +1,0 @@
-// Debug 환경 설정
-// 로컬 개발 시 Configs/Local.xcconfig 파일을 만들어 값을 덮어쓸 수 있습니다.
-#include? "Local.xcconfig"
-
-API_BASE_URL = https:/$()/fillit-production.up.railway.app
-SOCKET_BASE_URL = https:/$()/fillit-production.up.railway.app
