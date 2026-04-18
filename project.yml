@@ -1,0 +1,46 @@
+name: fillit-iOS
+options:
+  bundleIdPrefix: com.fillit
+  deploymentTarget:
+    iOS: "17.0"
+  defaultConfig: Debug
+  xcodeVersion: "15"
+
+packages:
+  SocketIO:
+    url: https://github.com/socketio/socket.io-client-swift
+    from: "16.1.0"
+  Kingfisher:
+    url: https://github.com/onevcat/Kingfisher
+    from: "7.0.0"
+
+settings:
+  SWIFT_VERSION: "5.9"
+  MARKETING_VERSION: "1.0"
+  CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  fillit-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: fillit-iOS
+        excludes:
+          - "**/.DS_Store"
+    configFiles:
+      Debug: Configs/Debug.xcconfig
+      Release: Configs/Release.xcconfig
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.fillit.app
+      INFOPLIST_FILE: fillit-iOS/Info.plist
+      SWIFT_VERSION: "5.9"
+      CODE_SIGN_STYLE: Automatic
+      DEVELOPMENT_TEAM: ""
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies:
+      - package: SocketIO
+        product: SocketIO
+      - package: Kingfisher
+        product: Kingfisher

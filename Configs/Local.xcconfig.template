@@ -1,0 +1,5 @@
+// Local.xcconfig — 이 파일을 복사해서 Local.xcconfig로 저장하세요 (Git 미추적)
+// cp Configs/Local.xcconfig.template Configs/Local.xcconfig
+
+API_BASE_URL = http:$()//192.168.0.10:3000
+SOCKET_BASE_URL = http:$()//192.168.0.10:3000

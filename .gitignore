@@ -1,0 +1,17 @@
+# Xcode
+*.xcworkspace
+xcuserdata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Local environment config (gitignored — use Local.xcconfig.template to create)
+Configs/Local.xcconfig
+
+# SPM
+.build/
+*.resolved
+
+# macOS
+.DS_Store

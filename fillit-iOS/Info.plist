@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_BASE_URL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>ko</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Fillit</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>사진을 찍어 슬롯에 업로드하기 위해 카메라 접근이 필요합니다.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>사진 위치 정보를 태그하기 위해 위치 접근이 필요합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>결과 이미지를 사진 보관함에 저장하기 위해 쓰기 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>갤러리에서 사진을 선택하여 업로드하기 위해 사진 보관함 접근이 필요합니다.</string>
+	<key>SOCKET_BASE_URL</key>
+	<string>$(SOCKET_BASE_URL)</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>AccentColor</string>
+	</dict>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+</dict>
+</plist>
