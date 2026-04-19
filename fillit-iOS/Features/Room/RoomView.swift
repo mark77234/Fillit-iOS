@@ -242,17 +242,14 @@ private struct ParticipantListView: View {
 
 private struct InviteSection: View {
     let room: Room
-    @State private var copied = false
+    @State private var copiedRoomCode = false
+    @State private var copiedLink: LinkTarget?
     @State private var showShareSheet = false
     @State private var showInstagramSheet = false
     @State private var isInstagramAvailable = false
 
-    private var appURL: URL { DeepLinkManager.buildAppURL(room: room) }
-    private var shareItems: [Any] {
-        [DeepLinkManager.buildWebURL(room: room), DeepLinkManager.buildShareMessage(room: room)]
-    }
+    enum LinkTarget { case app, web, store }
 
-    // Official Instagram gradient: purple → red → orange (bottom-left → top-right)
     private let igGradient = LinearGradient(
         stops: [
             .init(color: Color(red: 0.51, green: 0.23, blue: 0.70), location: 0),
@@ -269,21 +266,21 @@ private struct InviteSection: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+            // Room code row
             HStack {
                 Text(room.roomCode)
                     .font(.system(size: 28, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color.fillitPrimary)
                     .frame(maxWidth: .infinity)
-
                 Button {
-                    UIPasteboard.general.string = appURL.absoluteString
-                    withAnimation { copied = true }
+                    UIPasteboard.general.string = room.roomCode
+                    withAnimation { copiedRoomCode = true }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { copied = false }
+                        withAnimation { copiedRoomCode = false }
                     }
                 } label: {
-                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                        .foregroundStyle(copied ? Color.fillitAccent2 : Color.fillitPrimary)
+                    Image(systemName: copiedRoomCode ? "checkmark" : "doc.on.doc")
+                        .foregroundStyle(copiedRoomCode ? Color.fillitAccent2 : Color.fillitPrimary)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
@@ -293,21 +290,24 @@ private struct InviteSection: View {
             .background(Color.fillitPrimary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
+            // Share buttons
             HStack(spacing: 10) {
                 Button {
                     showShareSheet = true
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
+                        .frame(maxWidth: .infinity).frame(height: 44)
                         .background(Color(uiColor: .secondarySystemBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                         .contentShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .buttonStyle(.plain)
                 .sheet(isPresented: $showShareSheet) {
-                    ActivityShareSheet(items: shareItems).ignoresSafeArea()
+                    ActivityShareSheet(items: [
+                        DeepLinkManager.buildWebURL(room: room),
+                        DeepLinkManager.buildShareMessage(room: room)
+                    ]).ignoresSafeArea()
                 }
 
                 if isInstagramAvailable {
@@ -315,28 +315,61 @@ private struct InviteSection: View {
                         showInstagramSheet = true
                     } label: {
                         Image("Instagram_Glyph_White")
-                            .resizable()
-                            .scaledToFit()
+                            .resizable().scaledToFit()
                             .frame(width: 22, height: 22)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
+                            .frame(maxWidth: .infinity).frame(height: 44)
                             .background(igGradient)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .contentShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.plain)
                     .sheet(isPresented: $showInstagramSheet) {
-                        ActivityShareSheet(
-                            items: [makeShareCard(), DeepLinkManager.buildShareMessage(room: room)]
-                        ).ignoresSafeArea()
+                        ActivityShareSheet(items: [makeShareCard()]).ignoresSafeArea()
                     }
                 }
             }
+
+            // Link copy section
+            VStack(spacing: 0) {
+                LinkCopyRow(
+                    label: "앱 딥링크",
+                    value: DeepLinkManager.buildAppURL(room: room).absoluteString,
+                    isCopied: copiedLink == .app
+                ) {
+                    copyLink(DeepLinkManager.buildAppURL(room: room).absoluteString, target: .app)
+                }
+                Divider().padding(.leading, 12)
+                LinkCopyRow(
+                    label: "웹 링크",
+                    value: DeepLinkManager.buildWebURL(room: room).absoluteString,
+                    isCopied: copiedLink == .web
+                ) {
+                    copyLink(DeepLinkManager.buildWebURL(room: room).absoluteString, target: .web)
+                }
+                Divider().padding(.leading, 12)
+                LinkCopyRow(
+                    label: "앱 다운로드",
+                    value: "https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564",
+                    isCopied: copiedLink == .store
+                ) {
+                    copyLink("https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564", target: .store)
+                }
+            }
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .padding()
         .fillitCard()
         .onAppear {
             isInstagramAvailable = UIApplication.shared.canOpenURL(URL(string: "instagram://")!)
+        }
+    }
+
+    private func copyLink(_ value: String, target: LinkTarget) {
+        UIPasteboard.general.string = value
+        withAnimation { copiedLink = target }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation { if copiedLink == target { copiedLink = nil } }
         }
     }
 
@@ -346,13 +379,10 @@ private struct InviteSection: View {
         return renderer.image { ctx in
             let cgCtx = ctx.cgContext
 
-            // Dark purple → near-black gradient background
-            let bgColors = [UIColor(red: 0.10, green: 0.02, blue: 0.22, alpha: 1).cgColor,
-                            UIColor(red: 0.03, green: 0.01, blue: 0.10, alpha: 1).cgColor] as CFArray
-            let bgGrad = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: bgColors, locations: [0, 1])!
-            cgCtx.drawLinearGradient(bgGrad, start: .zero, end: CGPoint(x: 0, y: size.height), options: [])
+            // White background
+            UIColor.white.setFill()
+            UIBezierPath(rect: CGRect(origin: .zero, size: size)).fill()
 
-            // Centered text helper — returns line height
             func centered(_ text: String, font: UIFont, color: UIColor, y: CGFloat) -> CGFloat {
                 let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
                 let s = NSAttributedString(string: text, attributes: attrs)
@@ -363,105 +393,94 @@ private struct InviteSection: View {
                 return b.height
             }
 
-            // Left-aligned text helper — returns line height
-            func left(_ text: String, font: UIFont, color: UIColor, x: CGFloat, y: CGFloat) -> CGFloat {
-                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
-                let s = NSAttributedString(string: text, attributes: attrs)
-                let maxW = size.width - x - 60
-                let b = s.boundingRect(with: CGSize(width: maxW, height: .greatestFiniteMagnitude),
-                                       options: .usesLineFragmentOrigin, context: nil)
-                s.draw(in: CGRect(x: x, y: y, width: maxW, height: b.height))
-                return b.height
-            }
-
-            // App icon
-            let iconSz: CGFloat = 200
-            let iconX = (size.width - iconSz) / 2
-            let iconY: CGFloat = 160
+            // App icon (centered top)
+            let iconSz: CGFloat = 220
+            let iconY: CGFloat = 240
             if let icon = UIImage(named: "ic_fillit") {
-                let r = CGRect(x: iconX, y: iconY, width: iconSz, height: iconSz)
-                let path = UIBezierPath(roundedRect: r, cornerRadius: 46)
-                cgCtx.saveGState()
-                path.addClip()
-                icon.draw(in: r)
-                cgCtx.restoreGState()
-                cgCtx.setStrokeColor(UIColor.white.withAlphaComponent(0.18).cgColor)
-                cgCtx.setLineWidth(2)
-                path.stroke()
+                let r = CGRect(x: (size.width - iconSz) / 2, y: iconY, width: iconSz, height: iconSz)
+                let path = UIBezierPath(roundedRect: r, cornerRadius: 50)
+                cgCtx.saveGState(); path.addClip(); icon.draw(in: r); cgCtx.restoreGState()
             }
 
-            var y: CGFloat = iconY + iconSz + 36
-            y += centered("Fillit", font: .systemFont(ofSize: 74, weight: .bold), color: .white, y: y) + 14
+            var y: CGFloat = iconY + iconSz + 48
+            let dark = UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
+            let mid  = UIColor(red: 0.40, green: 0.40, blue: 0.44, alpha: 1)
+            let primary = UIColor(red: 0.42, green: 0.24, blue: 0.90, alpha: 1)
+
+            y += centered("Fillit", font: .systemFont(ofSize: 80, weight: .bold), color: dark, y: y) + 16
             y += centered("소중한 순간들을 함께 채워보세요",
-                          font: .systemFont(ofSize: 36, weight: .regular),
-                          color: UIColor.white.withAlphaComponent(0.55), y: y) + 64
+                          font: .systemFont(ofSize: 38, weight: .regular), color: mid, y: y) + 80
 
-            // Room code card
-            let pad: CGFloat = 60
-            let cardRect = CGRect(x: pad, y: y, width: size.width - pad * 2, height: 440)
-            let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 36)
-            UIColor.white.withAlphaComponent(0.07).setFill(); cardPath.fill()
-            UIColor.white.withAlphaComponent(0.14).setStroke(); cardPath.lineWidth = 1.5; cardPath.stroke()
+            // Divider
+            UIColor(red: 0.90, green: 0.90, blue: 0.92, alpha: 1).setStroke()
+            let div1 = UIBezierPath(); div1.lineWidth = 2
+            div1.move(to: CGPoint(x: 100, y: y)); div1.addLine(to: CGPoint(x: size.width - 100, y: y)); div1.stroke()
+            y += 80
 
-            let dim = UIColor.white.withAlphaComponent(0.5)
-            var cy = y + 52
-            cy += centered("방 코드", font: .systemFont(ofSize: 34, weight: .semibold), color: dim, y: cy) + 18
-            cy += centered(room.roomCode, font: .monospacedSystemFont(ofSize: 108, weight: .bold), color: .white, y: cy) + 24
+            // Room code
+            y += centered("방 코드", font: .systemFont(ofSize: 38, weight: .semibold), color: mid, y: y) + 20
+            y += centered(room.roomCode, font: .monospacedSystemFont(ofSize: 160, weight: .bold), color: primary, y: y) + 40
+
+            // Info rows
             var infoLine = room.mode.rawValue
             if let kw = room.keyword, !kw.isEmpty { infoLine = "\(kw)  ·  \(infoLine)" }
             infoLine += "  ·  슬롯 \(room.totalSlots)개"
-            _ = centered(infoLine, font: .systemFont(ofSize: 34, weight: .medium), color: dim, y: cy)
+            y += centered(infoLine, font: .systemFont(ofSize: 42, weight: .medium), color: mid, y: y) + 20
 
-            y = cardRect.maxY + 50
             let host = room.participants.first(where: { $0.userId == room.hostUserId })?.nickname ?? ""
             if !host.isEmpty {
-                y += centered("방장: \(host)", font: .systemFont(ofSize: 38, weight: .medium),
-                              color: UIColor.white.withAlphaComponent(0.7), y: y) + 52
-            } else { y += 52 }
+                y += centered("방장: \(host)", font: .systemFont(ofSize: 38, weight: .regular), color: mid, y: y) + 0
+            }
 
-            // Divider
-            UIColor.white.withAlphaComponent(0.14).setStroke()
-            let div = UIBezierPath(); div.lineWidth = 1
-            div.move(to: CGPoint(x: pad, y: y)); div.addLine(to: CGPoint(x: size.width - pad, y: y)); div.stroke()
-            y += 50
-
-            // Links
-            let accent = UIColor(red: 0.98, green: 0.38, blue: 0.52, alpha: 1)
-            let lx = pad + 20
-            let labelF = UIFont.systemFont(ofSize: 30, weight: .semibold)
-            let linkF  = UIFont.systemFont(ofSize: 30, weight: .regular)
-            let linkColor = UIColor.white.withAlphaComponent(0.58)
-
-            y += left("👉  앱으로 참여하기", font: labelF, color: accent, x: lx, y: y) + 10
-            y += left(DeepLinkManager.buildAppURL(room: room).absoluteString,
-                      font: linkF, color: linkColor, x: lx, y: y) + 36
-
-            y += left("🌐  웹으로 참여하기", font: labelF, color: accent, x: lx, y: y) + 10
-            y += left("fillit.today/room/\(room.roomCode)", font: linkF, color: linkColor, x: lx, y: y) + 36
-
-            y += left("📲  앱 다운로드", font: labelF, color: accent, x: lx, y: y) + 10
-            _ = left("apps.apple.com/app/id6762511564", font: linkF, color: linkColor, x: lx, y: y)
-
-            // Bottom Instagram-style gradient bar
-            let barH: CGFloat = 10
-            let barY = size.height - 110
-            let barRect = CGRect(x: pad, y: barY, width: size.width - pad * 2, height: barH)
-            let barPath = UIBezierPath(roundedRect: barRect, cornerRadius: barH / 2)
+            // Bottom accent bar (Fillit brand color)
+            let barH: CGFloat = 16
+            let barY = size.height - barH
+            let barRect = CGRect(x: 0, y: barY, width: size.width, height: barH)
             cgCtx.saveGState()
-            barPath.addClip()
-            let igC = [UIColor(red: 0.51, green: 0.23, blue: 0.70, alpha: 1).cgColor,
-                       UIColor(red: 0.99, green: 0.11, blue: 0.11, alpha: 1).cgColor,
-                       UIColor(red: 0.97, green: 0.47, blue: 0.21, alpha: 1).cgColor] as CFArray
-            let igG = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: igC, locations: [0, 0.5, 1])!
-            cgCtx.drawLinearGradient(igG,
-                                     start: CGPoint(x: pad, y: barY),
-                                     end: CGPoint(x: size.width - pad, y: barY),
-                                     options: [])
+            UIBezierPath(rect: barRect).addClip()
+            let fC = [UIColor(red: 0.42, green: 0.24, blue: 0.90, alpha: 1).cgColor,
+                      UIColor(red: 0.68, green: 0.36, blue: 0.98, alpha: 1).cgColor] as CFArray
+            let fG = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: fC, locations: [0, 1])!
+            cgCtx.drawLinearGradient(fG, start: CGPoint(x: 0, y: barY), end: CGPoint(x: size.width, y: barY), options: [])
             cgCtx.restoreGState()
 
-            _ = centered("fillit.today", font: .systemFont(ofSize: 30, weight: .medium),
-                         color: UIColor.white.withAlphaComponent(0.28), y: size.height - 68)
+            _ = centered("fillit.today", font: .systemFont(ofSize: 34, weight: .medium),
+                         color: UIColor(red: 0.65, green: 0.65, blue: 0.68, alpha: 1), y: size.height - 80)
         }
+    }
+}
+
+private struct LinkCopyRow: View {
+    let label: String
+    let value: String
+    let isCopied: Bool
+    let onCopy: () -> Void
+
+    var body: some View {
+        Button(action: onCopy) {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(value)
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer()
+                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(isCopied ? Color.fillitAccent2 : Color.fillitPrimary)
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 52)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
