@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct RoomView: View {
     let roomCode: String
@@ -106,7 +107,7 @@ struct RoomView: View {
                 }
 
                 if viewModel.isHost {
-                    InviteSection(roomCode: roomCode)
+                    InviteSection(room: room)
                         .padding(.horizontal)
                 }
             }
@@ -241,11 +242,17 @@ private struct ParticipantListView: View {
 }
 
 private struct InviteSection: View {
-    let roomCode: String
+    let room: Room
     @State private var copied = false
+    @State private var showShareSheet = false
 
-    private var shareText: String {
-        "Fillit에서 함께해요!\n코드 '\(roomCode)'를 입력하거나 앱을 설치하세요.\nfillit://open"
+    private var appURL: URL {
+        DeepLinkManager.buildShareURL(room: room)
+            ?? URL(string: "fillit://room/\(room.roomCode)")!
+    }
+
+    private var shareItems: [Any] {
+        [DeepLinkManager.buildWebURL(room: room), DeepLinkManager.buildShareMessage(room: room)]
     }
 
     var body: some View {
@@ -255,13 +262,13 @@ private struct InviteSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack {
-                Text(roomCode)
+                Text(room.roomCode)
                     .font(.system(size: 28, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color.fillitPrimary)
                     .frame(maxWidth: .infinity)
 
                 Button {
-                    UIPasteboard.general.string = roomCode
+                    UIPasteboard.general.string = appURL.absoluteString
                     withAnimation { copied = true }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         withAnimation { copied = false }
@@ -269,21 +276,42 @@ private struct InviteSection: View {
                 } label: {
                     Image(systemName: copied ? "checkmark" : "doc.on.doc")
                         .foregroundStyle(copied ? Color.fillitAccent2 : Color.fillitPrimary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
             .padding()
             .background(Color.fillitPrimary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            ShareLink(item: shareText) {
-                Label("앱 공유하기", systemImage: "square.and.arrow.up")
+            Button {
+                showShareSheet = true
+            } label: {
+                Label("초대 공유하기", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
                     .frame(height: 40)
                     .background(Color(uiColor: .secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .contentShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showShareSheet) {
+                ActivityShareSheet(items: shareItems)
+                    .ignoresSafeArea()
             }
         }
         .padding()
         .fillitCard()
     }
+}
+
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

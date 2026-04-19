@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		011031713ADDFBB15657F85A /* UserSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB799846EE91D98EAB72ADC4 /* UserSession.swift */; };
 		05527280466BC2206A89CB28 /* SocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3056EBD3D29595D0A33C159A /* SocketService.swift */; };
+		7BDAEE1AB8634EFD91E26986 /* DeepLinkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A20178224384EB5B4C88DBA /* DeepLinkManager.swift */; };
 		08BFA5F8CFA5A27B180E6798 /* JoinRoomUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F031696F0E0BC288B859A509 /* JoinRoomUseCase.swift */; };
 		08D454E2429808E3BBA495D3 /* WaitingDotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD46FAA38238AA2F8A7D3D0 /* WaitingDotsView.swift */; };
 		14EF859726145342A2DCF28A /* View+Modifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACF0260FAAFE7114B99145C /* View+Modifiers.swift */; };
@@ -76,6 +77,7 @@
 		20A94DEE4D12F32D0BBCBEEB /* VoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoteViewModel.swift; sourceTree = "<group>"; };
 		240007801E9C259385FD9A96 /* fillit-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "fillit-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3056EBD3D29595D0A33C159A /* SocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketService.swift; sourceTree = "<group>"; };
+		1A20178224384EB5B4C88DBA /* DeepLinkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkManager.swift; sourceTree = "<group>"; };
 		3458F96391B6DA1A8AF4D5B6 /* Room.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Room.swift; sourceTree = "<group>"; };
 		3FD0D8616E85F05F4C857C62 /* UploadImageUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadImageUseCase.swift; sourceTree = "<group>"; };
 		42E97E61DFE89CF253C7A727 /* ResultViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultViewModel.swift; sourceTree = "<group>"; };
@@ -213,6 +215,7 @@
 			isa = PBXGroup;
 			children = (
 				1A6EE701B68B260E17356036 /* APIClient.swift */,
+				1A20178224384EB5B4C88DBA /* DeepLinkManager.swift */,
 				8FF709F981A77D9A02C3B21E /* GeoService.swift */,
 				E2490D56EE6E541501B73D7C /* ImagePickerService.swift */,
 				B4396E9B48D8367B33D71C41 /* LocationService.swift */,
@@ -467,6 +470,7 @@
 				87A1D6E4EB3A3B7EF0069FD8 /* SlotCardView.swift in Sources */,
 				1555DF2BC9E28C3475FCC86D /* SocketEvents.swift in Sources */,
 				05527280466BC2206A89CB28 /* SocketService.swift in Sources */,
+				7BDAEE1AB8634EFD91E26986 /* DeepLinkManager.swift in Sources */,
 				69C3934D5727720765B40013 /* Template.swift in Sources */,
 				FE9D52858EE09E95745E8284 /* TemplatePreviewView.swift in Sources */,
 				3CAE51B224195CEB25BB2D8E /* TemplateService.swift in Sources */,

@@ -76,17 +76,25 @@ struct OnboardingView: View {
 
                     HStack(spacing: 12) {
                         if currentPage > 0 {
-                            Button("이전") {
+                            Button {
                                 withAnimation { currentPage -= 1 }
+                            } label: {
+                                Text("이전")
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 80, height: 44)
+                                    .contentShape(Rectangle())
                             }
-                            .foregroundStyle(.secondary)
-                            .frame(width: 80, height: 44)
+                            .buttonStyle(.plain)
                         } else if slides[currentPage].showSkip {
-                            Button("건너뛰기") {
+                            Button {
                                 onComplete()
+                            } label: {
+                                Text("건너뛰기")
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 80, height: 44)
+                                    .contentShape(Rectangle())
                             }
-                            .foregroundStyle(.secondary)
-                            .frame(width: 80, height: 44)
+                            .buttonStyle(.plain)
                         } else {
                             Spacer().frame(width: 80, height: 44)
                         }
@@ -94,24 +102,32 @@ struct OnboardingView: View {
                         Spacer()
 
                         if currentPage < slides.count - 1 {
-                            Button("다음") {
+                            Button {
                                 withAnimation { currentPage += 1 }
+                            } label: {
+                                Text("다음")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 80, height: 44)
+                                    .background(Color.fillitPrimary)
+                                    .clipShape(Capsule())
+                                    .contentShape(Capsule())
                             }
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 80, height: 44)
-                            .background(Color.fillitPrimary)
-                            .clipShape(Capsule())
+                            .buttonStyle(.plain)
                         } else {
-                            Button("시작하기") {
+                            Button {
                                 onComplete()
+                            } label: {
+                                Text("시작하기")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 44)
+                                    .background(Color.fillitPrimary)
+                                    .clipShape(Capsule())
+                                    .contentShape(Capsule())
                             }
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(Color.fillitPrimary)
-                            .clipShape(Capsule())
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.horizontal, 24)

@@ -32,6 +32,17 @@
 	<string>갤러리에서 사진을 선택하여 업로드하기 위해 사진 보관함 접근이 필요합니다.</string>
 	<key>SOCKET_BASE_URL</key>
 	<string>$(SOCKET_BASE_URL)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fillit</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>today.fillit.app</string>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

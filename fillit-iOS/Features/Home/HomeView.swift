@@ -4,6 +4,7 @@ struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var showOnboarding = false
     @Environment(AppRouter.self) private var router
+    @Environment(DeepLinkManager.self) private var deepLinkManager
 
     var body: some View {
         ScrollView {
@@ -119,11 +120,23 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingView { showOnboarding = false }
         }
+        .onAppear {
+            applyPendingDeepLink()
+        }
+        .onChange(of: deepLinkManager.pendingRoomCode) { _, _ in
+            applyPendingDeepLink()
+        }
         .alert("오류", isPresented: $viewModel.showError) {
             Button("확인", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage)
         }
+    }
+
+    private func applyPendingDeepLink() {
+        guard let code = deepLinkManager.pendingRoomCode else { return }
+        viewModel.roomCode = code
+        deepLinkManager.pendingRoomCode = nil
     }
 }
 
