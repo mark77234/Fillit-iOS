@@ -26,26 +26,25 @@ final class DeepLinkManager {
         pendingRoomCode = id.uppercased()
     }
 
-    static func buildShareURL(room: Room, source: String = "direct") -> URL? {
+    // fillit://room/{roomCode}?m=multi&kw=생일&sc=2&h=병찬
+    static func buildAppURL(room: Room) -> URL {
         var components = URLComponents()
         components.scheme = "fillit"
         components.host = "room"
         components.path = "/\(room.roomCode)"
 
         let hostNickname = room.participants.first(where: { $0.userId == room.hostUserId })?.nickname ?? ""
-        let participantNames = room.participants.map { $0.nickname }.joined(separator: ",")
 
-        components.queryItems = [
-            .init(name: "mode", value: room.mode.rawValue),
-            .init(name: "keyword", value: room.keyword ?? ""),
-            .init(name: "slotCount", value: "\(room.totalSlots)"),
-            .init(name: "participants", value: participantNames),
-            .init(name: "host", value: hostNickname),
-            .init(name: "appStore", value: "https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564"),
-            .init(name: "web", value: "https://fillit.today/"),
-            .init(name: "shareSource", value: source),
+        var items: [URLQueryItem] = [
+            .init(name: "m", value: room.mode.rawValue),
+            .init(name: "sc", value: "\(room.totalSlots)"),
+            .init(name: "h", value: hostNickname),
         ]
-        return components.url
+        if let keyword = room.keyword, !keyword.isEmpty {
+            items.insert(.init(name: "kw", value: keyword), at: 1)
+        }
+        components.queryItems = items
+        return components.url ?? URL(string: "fillit://room/\(room.roomCode)")!
     }
 
     static func buildWebURL(room: Room) -> URL {
@@ -55,8 +54,8 @@ final class DeepLinkManager {
     static func buildShareMessage(room: Room) -> String {
         let hostNickname = room.participants.first(where: { $0.userId == room.hostUserId })?.nickname ?? ""
         let participantNames = room.participants.map { $0.nickname }.joined(separator: ", ")
-        let deepLink = buildShareURL(room: room)?.absoluteString ?? "https://fillit.today/room/\(room.roomCode)"
-        let webLink = "https://fillit.today/room/\(room.roomCode)"
+        let appLink = buildAppURL(room: room).absoluteString
+        let webLink = buildWebURL(room: room).absoluteString
 
         var lines: [String] = [
             "📸 Fillit 방 초대",
@@ -73,15 +72,12 @@ final class DeepLinkManager {
             "방장: \(hostNickname)",
             "",
             "👉 참여하기",
-            "앱: \(deepLink)",
+            "앱: \(appLink)",
             "",
             "웹: \(webLink)",
             "",
             "📲 앱 다운로드",
             "https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564",
-            "",
-            "🌐 설치 없이 참여",
-            "https://fillit.today/",
         ]
         return lines.joined(separator: "\n")
     }

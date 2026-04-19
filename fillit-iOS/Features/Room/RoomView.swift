@@ -1,6 +1,5 @@
 import SwiftUI
 import PhotosUI
-import UIKit
 
 struct RoomView: View {
     let roomCode: String
@@ -245,11 +244,10 @@ private struct InviteSection: View {
     let room: Room
     @State private var copied = false
     @State private var showShareSheet = false
+    @State private var showInstagramSheet = false
+    @State private var isInstagramAvailable = false
 
-    private var appURL: URL {
-        DeepLinkManager.buildShareURL(room: room)
-            ?? URL(string: "fillit://room/\(room.roomCode)")!
-    }
+    private var appURL: URL { DeepLinkManager.buildAppURL(room: room) }
 
     private var shareItems: [Any] {
         [DeepLinkManager.buildWebURL(room: room), DeepLinkManager.buildShareMessage(room: room)]
@@ -300,9 +298,82 @@ private struct InviteSection: View {
                 ActivityShareSheet(items: shareItems)
                     .ignoresSafeArea()
             }
+
+            if isInstagramAvailable {
+                Button {
+                    showInstagramSheet = true
+                } label: {
+                    Label("인스타 스토리 공유", systemImage: "camera.fill")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(red: 0.98, green: 0.29, blue: 0.40),
+                                         Color(red: 0.64, green: 0.11, blue: 0.79)],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .contentShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $showInstagramSheet) {
+                    ActivityShareSheet(items: [makeShareCard(), DeepLinkManager.buildShareMessage(room: room)])
+                        .ignoresSafeArea()
+                }
+            }
         }
         .padding()
         .fillitCard()
+        .onAppear {
+            isInstagramAvailable = UIApplication.shared.canOpenURL(
+                URL(string: "instagram://")!
+            )
+        }
+    }
+
+    private func makeShareCard() -> UIImage {
+        let size = CGSize(width: 1080, height: 1080)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { _ in
+            UIColor(red: 0.12, green: 0.04, blue: 0.22, alpha: 1).setFill()
+            UIBezierPath(rect: CGRect(origin: .zero, size: size)).fill()
+
+            UIColor(red: 0.98, green: 0.29, blue: 0.40, alpha: 1).setFill()
+            UIBezierPath(rect: CGRect(x: 0, y: 0, width: 14, height: size.height)).fill()
+
+            let pad: CGFloat = 90
+            func draw(_ text: String, font: UIFont, color: UIColor = .white, y: CGFloat) -> CGFloat {
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
+                let str = NSAttributedString(string: text, attributes: attrs)
+                let maxW = size.width - pad * 2
+                let bounds = str.boundingRect(
+                    with: CGSize(width: maxW, height: .greatestFiniteMagnitude),
+                    options: .usesLineFragmentOrigin, context: nil
+                )
+                str.draw(in: CGRect(x: pad, y: y, width: maxW, height: bounds.height))
+                return bounds.height
+            }
+
+            let sub = UIColor.white.withAlphaComponent(0.8)
+            var y: CGFloat = 110
+            y += draw("📸 Fillit", font: .systemFont(ofSize: 56, weight: .bold), y: y) + 20
+            y += draw(room.roomCode, font: .monospacedSystemFont(ofSize: 100, weight: .bold), y: y) + 36
+            if let keyword = room.keyword, !keyword.isEmpty {
+                y += draw("키워드: \(keyword)", font: .systemFont(ofSize: 46, weight: .medium), color: sub, y: y) + 14
+            }
+            y += draw("슬롯: \(room.totalSlots)개  ·  \(room.mode.rawValue)",
+                      font: .systemFont(ofSize: 46, weight: .medium), color: sub, y: y) + 14
+            let host = room.participants.first(where: { $0.userId == room.hostUserId })?.nickname ?? ""
+            if !host.isEmpty {
+                _ = draw("방장: \(host)", font: .systemFont(ofSize: 46, weight: .medium), color: sub, y: y)
+            }
+            _ = draw("fillit.today/room/\(room.roomCode)",
+                     font: .systemFont(ofSize: 34, weight: .regular),
+                     color: UIColor.white.withAlphaComponent(0.45),
+                     y: size.height - 80)
+        }
     }
 }
 
