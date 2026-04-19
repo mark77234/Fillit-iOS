@@ -331,27 +331,15 @@ private struct InviteSection: View {
 
             // Link copy section
             VStack(spacing: 0) {
-                LinkCopyRow(
-                    label: "앱 딥링크",
-                    value: DeepLinkManager.buildAppURL(room: room).absoluteString,
-                    isCopied: copiedLink == .app
-                ) {
+                LinkCopyRow(label: "앱 바로가기 링크", isCopied: copiedLink == .app) {
                     copyLink(DeepLinkManager.buildAppURL(room: room).absoluteString, target: .app)
                 }
                 Divider().padding(.leading, 12)
-                LinkCopyRow(
-                    label: "웹 링크",
-                    value: DeepLinkManager.buildWebURL(room: room).absoluteString,
-                    isCopied: copiedLink == .web
-                ) {
+                LinkCopyRow(label: "웹 링크", isCopied: copiedLink == .web) {
                     copyLink(DeepLinkManager.buildWebURL(room: room).absoluteString, target: .web)
                 }
                 Divider().padding(.leading, 12)
-                LinkCopyRow(
-                    label: "앱 다운로드",
-                    value: "https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564",
-                    isCopied: copiedLink == .store
-                ) {
+                LinkCopyRow(label: "앱 다운로드 링크", isCopied: copiedLink == .store) {
                     copyLink("https://apps.apple.com/us/app/fillit-fill-the-frame/id6762511564", target: .store)
                 }
             }
@@ -422,7 +410,8 @@ private struct InviteSection: View {
             y += centered(room.roomCode, font: .monospacedSystemFont(ofSize: 160, weight: .bold), color: primary, y: y) + 40
 
             // Info rows
-            var infoLine = room.mode.rawValue
+            let modeText = room.mode == .multi ? "다같이" : "혼자"
+            var infoLine = modeText
             if let kw = room.keyword, !kw.isEmpty { infoLine = "\(kw)  ·  \(infoLine)" }
             infoLine += "  ·  슬롯 \(room.totalSlots)개"
             y += centered(infoLine, font: .systemFont(ofSize: 42, weight: .medium), color: mid, y: y) + 20
@@ -452,32 +441,24 @@ private struct InviteSection: View {
 
 private struct LinkCopyRow: View {
     let label: String
-    let value: String
     let isCopied: Bool
     let onCopy: () -> Void
 
     var body: some View {
         Button(action: onCopy) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(label)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Text(value)
-                        .font(.caption)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
+            HStack {
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
                 Spacer()
                 Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                    .font(.caption.weight(.medium))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(isCopied ? Color.fillitAccent2 : Color.fillitPrimary)
                     .frame(width: 36, height: 36)
                     .contentShape(Rectangle())
             }
             .padding(.horizontal, 12)
-            .frame(height: 52)
+            .frame(height: 48)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

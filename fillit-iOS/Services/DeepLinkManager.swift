@@ -61,7 +61,7 @@ final class DeepLinkManager {
             "📸 Fillit 방 초대",
             "",
             "방 코드: \(room.roomCode)",
-            "모드: \(room.mode.rawValue)",
+            "모드: \(room.mode == .multi ? "다같이" : "혼자")",
         ]
         if let keyword = room.keyword, !keyword.isEmpty {
             lines.append("키워드: \(keyword)")
